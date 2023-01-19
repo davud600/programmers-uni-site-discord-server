@@ -12,7 +12,7 @@ const pool = mysql.createPool({
   user: DB_USER,
   database: DB_DATABASE,
   password: DB_PASSWORD,
-  port: DB_PORT,
+  port: 3307,
 });
 const poolPromise: any = pool.promise();
 
