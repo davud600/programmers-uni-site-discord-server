@@ -3,7 +3,7 @@ import { Member } from './interfaces/members.interface';
 
 const MILLISECONDS_IN_HOUR = 3600000;
 const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
-const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.05; // 3 minutes
+const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.25; // 3 minutes
 const MAX_DAYS_WITHOUT_PAYING = 28;
 
 // const testing_interval_time = 3000;
