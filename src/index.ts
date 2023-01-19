@@ -1,11 +1,12 @@
 import { poolPromise } from './databases';
 import { Member } from './interfaces/members.interface';
 
-const MILLISECONDS_IN_DAY = 86400000;
-// const MILLISECONDS_IN_AN_HOUR = 3600000;
-// const TIME_INTERVAL_HOURS = 6;
-const testing_interval_time = 1000;
+const MILLISECONDS_IN_HOUR = 3600000;
+const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
+const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.05; // 3 minutes
 const MAX_DAYS_WITHOUT_PAYING = 28;
+
+// const testing_interval_time = 3000;
 
 async function onMemberDuePayment(member: Member) {
   // message them on discord
@@ -18,26 +19,37 @@ async function onMemberDuePayment(member: Member) {
   await poolPromise.execute(sql);
 }
 
-async function listenIfMemberHasntPaid() {
-  const sql = `SELECT * FROM members`;
+async function checkDuePayments() {
+  const sql = `SELECT * FROM members 
+WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING} DAY)`;
+
+  const [members]: Array<Array<Member>> = await poolPromise.execute(sql);
+
+  members.forEach(async (member: Member) => await onMemberDuePayment(member));
+}
+
+async function updateRoles() {
+  const sql = `SELECT * FROM members WHERE is_member='${1}'`;
 
   const [members]: Array<Array<Member>> = await poolPromise.execute(sql);
 
   members.forEach(async (member: Member) => {
-    if (
-      Date.now() - Date.parse(member.last_paid) >
-        MAX_DAYS_WITHOUT_PAYING * MILLISECONDS_IN_DAY &&
-      member.warned_about_payment == false
-    ) {
-      await onMemberDuePayment(member);
-    }
+    // change their role using discord api
+    console.log(member);
   });
 }
 
 function main() {
-  setInterval(async () => {
-    await listenIfMemberHasntPaid();
-  }, testing_interval_time);
+  setInterval(
+    checkDuePayments,
+    DUE_PAYMENTS_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
+    // testing_interval_time,
+  );
+  setInterval(
+    updateRoles,
+    UPDATE_ROLES_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
+    // testing_interval_time,
+  );
 }
 
 main();
