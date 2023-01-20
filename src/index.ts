@@ -3,7 +3,7 @@ import { Member } from './interfaces/members.interface';
 
 const MILLISECONDS_IN_HOUR = 3600000;
 const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
-const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.25; // 3 minutes
+const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.25; // 15 minutes
 const MAX_DAYS_WITHOUT_PAYING = 28;
 
 // const testing_interval_time = 3000;
@@ -34,7 +34,7 @@ async function updateRoles() {
   const [members]: Array<Array<Member>> = await poolPromise.execute(sql);
 
   members.forEach(async (member: Member) => {
-    // change their role using discord api
+    // change their role using discord api if they arent member already
     console.log(member);
   });
 }
