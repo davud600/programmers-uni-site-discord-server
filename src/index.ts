@@ -1,12 +1,13 @@
 import { poolPromise } from './databases';
 import { Member } from './interfaces/members.interface';
+import { loginClient, upgradeRole } from './utils/discord';
 
 const MILLISECONDS_IN_HOUR = 3600000;
 const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
 const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.25; // 15 minutes
 const MAX_DAYS_WITHOUT_PAYING = 28;
 
-// const testing_interval_time = 3000;
+const testing_interval_time = 10000;
 
 async function onMemberDuePayment(member: Member) {
   // message them on discord
@@ -35,11 +36,13 @@ async function updateRoles() {
 
   members.forEach(async (member: Member) => {
     // change their role using discord api if they arent member already
-    console.log(member);
+    upgradeRole(member.discord_username);
   });
 }
 
 function main() {
+  loginClient(); // auth discord bot
+
   setInterval(
     checkDuePayments,
     DUE_PAYMENTS_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
@@ -47,8 +50,8 @@ function main() {
   );
   setInterval(
     updateRoles,
-    UPDATE_ROLES_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
-    // testing_interval_time,
+    // UPDATE_ROLES_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
+    testing_interval_time,
   );
 }
 
