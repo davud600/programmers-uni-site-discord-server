@@ -11,4 +11,5 @@ export const {
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
   MEMBER_ROLE_ID,
+  API_SERVER_LINK,
 } = process.env;

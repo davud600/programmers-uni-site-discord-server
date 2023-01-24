@@ -1,4 +1,3 @@
-import { poolPromise } from './databases';
 import { Member } from './interfaces/members.interface';
 import {
   downgradeRole,
@@ -6,25 +5,24 @@ import {
   upgradeRole,
   getServerMember,
 } from './utils/discord';
+import MembersService from './utils/members';
 
 const MILLISECONDS_IN_HOUR = 3600000;
 const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
 const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.1667; // 10 minutes
-const MAX_DAYS_WITHOUT_PAYING_WARNING = 28;
-const MAX_DAYS_WITHOUT_PAYING = 32;
+// const MAX_DAYS_WITHOUT_PAYING_WARNING = 28;
+// const MAX_DAYS_WITHOUT_PAYING = 32;
 
 const testing_interval_time = 10000;
 
 function isMember(discordUsername: string, serverMember: any): boolean {
-  if (!serverMember) {
-    console.log(
-      `Member with username: ${discordUsername}, does not exist on our discord server`,
-    );
+  if (serverMember) return true;
 
-    return false;
-  }
+  console.log(
+    `Member with username: ${discordUsername}, does not exist on our discord server`,
+  );
 
-  return true;
+  return false;
 }
 
 async function warnMember(member: Member) {
@@ -34,11 +32,7 @@ async function warnMember(member: Member) {
   // message them on discord
   // message owners on discord
 
-  const sql = `UPDATE members SET warned_about_payment=${true} WHERE id='${
-    member.id
-  }'`;
-
-  await poolPromise.execute(sql);
+  await MembersService.warnMember(member.id);
 
   console.log(`Warned ${member.discord_username} about payment`);
 }
@@ -47,36 +41,20 @@ async function removeMember(member: Member) {
   const serverMember = await getServerMember(member.discord_username);
   if (!isMember(member.discord_username, serverMember)) return;
 
-  const sql = `UPDATE members SET warned_about_payment=${false}, is_member=${false} WHERE id='${
-    member.id
-  }'`;
-
-  await poolPromise.execute(sql);
+  await MembersService.removeMember(member.id);
   await downgradeRole(serverMember);
 }
 
 async function checkDuePayments() {
-  const sqlWarnings = `SELECT * FROM members 
-WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING_WARNING} DAY) AND warned_about_payment=${false} AND is_member=${true}`;
-  const sqlRemove = `SELECT * FROM members 
-WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING} DAY) AND warned_about_payment=${true} AND is_member=${true}`;
-
-  const [membersToWarn]: Array<Array<Member>> = await poolPromise.execute(
-    sqlWarnings,
-  );
-
-  const [membersToRemove]: Array<Array<Member>> = await poolPromise.execute(
-    sqlRemove,
-  );
+  const membersToWarn = await MembersService.getMembersToWarn();
+  const membersToRemove = await MembersService.getMembersToDowngrade();
 
   membersToWarn.forEach(async (member: Member) => await warnMember(member));
   membersToRemove.forEach(async (member: Member) => await removeMember(member));
 }
 
 async function updateRoles() {
-  const sql = `SELECT * FROM members WHERE last_paid > DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING_WARNING} DAY) AND is_member=${true}`;
-
-  const [members]: Array<Array<Member>> = await poolPromise.execute(sql);
+  const members = await MembersService.getMembersToUpgrade();
 
   members.forEach(async (member: Member) => {
     const serverMember = await getServerMember(member.discord_username);
