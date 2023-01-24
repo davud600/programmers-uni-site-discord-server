@@ -4,15 +4,16 @@ import {
   loginClient,
   upgradeRole,
   getServerMember,
+  messageMember,
+  messageMod,
 } from './utils/discord';
 import MembersService from './utils/members';
 import { whitelist } from './config/whitelist.json';
+import { mods } from './config/mods.json';
 
 const MILLISECONDS_IN_HOUR = 3600000;
 const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
 const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.1667; // 10 minutes
-// const MAX_DAYS_WITHOUT_PAYING_WARNING = 28;
-// const MAX_DAYS_WITHOUT_PAYING = 32;
 
 // const testing_interval_time = 10000;
 
@@ -32,8 +33,10 @@ async function warnMember(member: Member) {
   const serverMember = await getServerMember(member.discord_username);
   if (!isMember(member.discord_username, serverMember)) return;
 
-  // message them on discord
-  // message owners on discord
+  await messageMember(serverMember, member.last_paid);
+  mods.forEach(
+    async mod => await messageMod(mod, serverMember, member.last_paid),
+  );
 
   await MembersService.warnMember(member.id);
 

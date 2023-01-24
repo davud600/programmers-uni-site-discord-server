@@ -20,11 +20,35 @@ client.on('ready', async () => {
   guild = client.guilds.cache.get(DISCORD_GUILD_ID ?? '');
 });
 
+const messageMember = async (member: any, lastPaid: string) =>
+  (await member.createDM()).send(
+    `Hello ${member.user.username}, your last payment was ${lastPaid.slice(
+      0,
+      10,
+    )}. If you wish to continue your access to Programmer's University please go to our website and make the payment. Have a nice day :)`,
+  );
+
+const messageMod = async (
+  modUsername: string,
+  member: any,
+  lastPaid: string,
+) => {
+  const mod = await getServerMember(modUsername);
+
+  if (!mod) return;
+
+  await (
+    await mod.createDM()
+  ).send(
+    `Member ${member.user.tag}'s last payment was ${lastPaid.slice(0, 10)}. `,
+  );
+};
+
 const getServerMembers = async () => await guild.members.fetch();
 
 const getServerMember = async (discordUsername: string) =>
-  getServerMembers().then((members: any[]) =>
-    members.find(member => member.user.tag === discordUsername),
+  (await getServerMembers()).find(
+    (member: any) => member.user.tag === discordUsername,
   );
 
 const changeMemberRole = async (
@@ -58,4 +82,11 @@ const upgradeRole = (member: any) =>
 const downgradeRole = (member: any) =>
   changeMemberRole(member, MEMBER_ROLE_ID, false);
 
-export { loginClient, upgradeRole, downgradeRole, getServerMember };
+export {
+  loginClient,
+  upgradeRole,
+  downgradeRole,
+  getServerMember,
+  messageMember,
+  messageMod,
+};
