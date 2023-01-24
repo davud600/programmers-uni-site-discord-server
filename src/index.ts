@@ -6,6 +6,7 @@ import {
   getServerMember,
 } from './utils/discord';
 import MembersService from './utils/members';
+import { whitelist } from './config/whitelist.json';
 
 const MILLISECONDS_IN_HOUR = 3600000;
 const DUE_PAYMENTS_TIME_INTERVAL_HOURS = 23;
@@ -13,7 +14,7 @@ const UPDATE_ROLES_TIME_INTERVAL_HOURS = 0.1667; // 10 minutes
 // const MAX_DAYS_WITHOUT_PAYING_WARNING = 28;
 // const MAX_DAYS_WITHOUT_PAYING = 32;
 
-const testing_interval_time = 10000;
+// const testing_interval_time = 10000;
 
 function isMember(discordUsername: string, serverMember: any): boolean {
   if (serverMember) return true;
@@ -26,6 +27,8 @@ function isMember(discordUsername: string, serverMember: any): boolean {
 }
 
 async function warnMember(member: Member) {
+  if (whitelist.includes(member.discord_username)) return;
+
   const serverMember = await getServerMember(member.discord_username);
   if (!isMember(member.discord_username, serverMember)) return;
 
@@ -38,6 +41,8 @@ async function warnMember(member: Member) {
 }
 
 async function removeMember(member: Member) {
+  if (whitelist.includes(member.discord_username)) return;
+
   const serverMember = await getServerMember(member.discord_username);
   if (!isMember(member.discord_username, serverMember)) return;
 
@@ -69,13 +74,13 @@ function main() {
 
   setInterval(
     checkDuePayments,
-    // DUE_PAYMENTS_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
-    testing_interval_time,
+    DUE_PAYMENTS_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
+    // testing_interval_time,
   );
   setInterval(
     updateRoles,
-    // UPDATE_ROLES_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
-    testing_interval_time,
+    UPDATE_ROLES_TIME_INTERVAL_HOURS * MILLISECONDS_IN_HOUR,
+    // testing_interval_time,
   );
 }
 
