@@ -34,7 +34,7 @@ async function warnMember(member: Member) {
   // message them on discord
   // message owners on discord
 
-  const sql = `UPDATE members SET warned_about_payment='${1}' WHERE id='${
+  const sql = `UPDATE members SET warned_about_payment=${true} WHERE id='${
     member.id
   }'`;
 
@@ -47,7 +47,7 @@ async function removeMember(member: Member) {
   const serverMember = await getServerMember(member.discord_username);
   if (!isMember(member.discord_username, serverMember)) return;
 
-  const sql = `UPDATE members SET warned_about_payment='${0}', is_member='${0}' WHERE id='${
+  const sql = `UPDATE members SET warned_about_payment=${false}, is_member=${false} WHERE id='${
     member.id
   }'`;
 
@@ -57,9 +57,9 @@ async function removeMember(member: Member) {
 
 async function checkDuePayments() {
   const sqlWarnings = `SELECT * FROM members 
-WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING_WARNING} DAY) AND warned_about_payment='${0}' AND is_member='${1}'`;
+WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING_WARNING} DAY) AND warned_about_payment=${false} AND is_member=${true}`;
   const sqlRemove = `SELECT * FROM members 
-WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING} DAY) AND warned_about_payment='${1}' AND is_member='${1}'`;
+WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING} DAY) AND warned_about_payment=${true} AND is_member=${true}`;
 
   const [membersToWarn]: Array<Array<Member>> = await poolPromise.execute(
     sqlWarnings,
@@ -74,7 +74,7 @@ WHERE last_paid < DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING} DAY) A
 }
 
 async function updateRoles() {
-  const sql = `SELECT * FROM members WHERE last_paid > DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING_WARNING} DAY) AND is_member='${1}'`;
+  const sql = `SELECT * FROM members WHERE last_paid > DATE_SUB(CURDATE(), INTERVAL ${MAX_DAYS_WITHOUT_PAYING_WARNING} DAY) AND is_member=${true}`;
 
   const [members]: Array<Array<Member>> = await poolPromise.execute(sql);
 
