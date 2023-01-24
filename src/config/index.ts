@@ -10,6 +10,5 @@ export const {
   DB_PORT,
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
-  PERMISSIONS_INTEGER,
   MEMBER_ROLE_ID,
 } = process.env;
