@@ -27,7 +27,7 @@ function isMember(discordUsername: string, serverMember: any): boolean {
   return false;
 }
 
-async function warnMember(member: Member) {
+async function warnMember(member: Member): Promise<void> {
   if (whitelist.includes(member.discord_username)) return;
 
   const serverMember = await getServerMember(member.discord_username);
@@ -43,7 +43,7 @@ async function warnMember(member: Member) {
   console.log(`Warned ${member.discord_username} about payment`);
 }
 
-async function removeMember(member: Member) {
+async function removeMember(member: Member): Promise<void> {
   if (whitelist.includes(member.discord_username)) return;
 
   const serverMember = await getServerMember(member.discord_username);
@@ -53,7 +53,7 @@ async function removeMember(member: Member) {
   await downgradeRole(serverMember);
 }
 
-async function checkDuePayments() {
+async function checkDuePayments(): Promise<void> {
   const membersToWarn = await MembersService.getMembersToWarn();
   const membersToRemove = await MembersService.getMembersToDowngrade();
 
@@ -61,7 +61,7 @@ async function checkDuePayments() {
   membersToRemove.forEach(async (member: Member) => await removeMember(member));
 }
 
-async function updateRoles() {
+async function updateRoles(): Promise<void> {
   const members = await MembersService.getMembersToUpgrade();
 
   members.forEach(async (member: Member) => {
