@@ -19,7 +19,7 @@ export default class MembersService {
 
   static async removeMember(id: number): Promise<void> {
     try {
-      await axios.post(`${apiLink}/warn/${id}`);
+      await axios.post(`${apiLink}/remove/${id}`);
     } catch (err) {
       console.error(err);
     }
